@@ -1,0 +1,451 @@
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+struct jugador {
+    string nombre;
+    string apellido;
+    string fichas;
+    string rondasJugadas;
+    string rondasGanadas;
+    string percentGanadas;
+};
+
+string dato, nombreFichero;
+jugador a, b, c, d, e, f, g, h, i, j;
+jugador defaultPlayers[] = {a, b, c, d, e, f, g, h, i, j};
+vector <jugador> jugadores;
+
+void mainMenu (char);
+void guardarPartida (string);
+void cargarPartida (string);
+void agregarJugador ();
+void erasePlayer ();
+void statsJugador ();
+void leaderboardPartida ();
+void ganadorRonda ();
+void transferirFichas ();
+
+void playerFinder (string);
+void eliminarJugadoresSinFichas();
+
+int main() {
+    
+    char x;
+    
+    cout << "Nombre del fichero: ";
+    cin >> nombreFichero;
+    
+    ifstream JInput(nombreFichero);
+    
+    if (JInput.fail())
+        cerr << "Error al abrir el fichero, por favor revisar si el archivo existe en el compilador." << endl;
+        
+    else {
+        for (int i = 0; i < 10; i++) {
+            jugadores.push_back(defaultPlayers[i]);
+            if (getline(JInput, dato))
+                jugadores[i].nombre = dato;
+            if (getline(JInput, dato))
+                jugadores[i].apellido = dato;
+            if (getline(JInput, dato))
+                jugadores[i].fichas = dato;
+            if (getline(JInput, dato))
+                jugadores[i].rondasJugadas = dato;
+            if (getline(JInput, dato))
+                jugadores[i].rondasGanadas = dato;
+            if (getline(JInput, dato))
+                jugadores[i].percentGanadas = dato;
+        }
+        
+        JInput.close();
+        
+        cout << "Bienvenido a su administrador de partidas de poker!" << endl;
+    
+        mainMenu(x);
+    }
+    
+    return 0;
+}
+
+void mainMenu (char x) {
+    cout << "\nPulse una de las siguientes teclas para seleccionar lo que desee hacer: " << endl;
+   
+    cout << "A: Agregar Jugador" << endl;
+    cout << "C: Cargar Partida" << endl;
+    cout << "D: Declarar Ganador de Ronda" << endl;
+    cout << "E: Eliminar Jugador" << endl;
+    cout << "G: Guardar Partida" << endl;
+    cout << "L: Ver Leaderboard" << endl;
+    cout << "S: Ver Stats de un Jugador" << endl;
+    cout << "T: Transferir Fichas" << endl;
+    cout << "X: Salir del programa" << endl;
+    cin >> x;
+    cout << "\n";
+    
+    while ((toupper(x) != 'A') && (toupper(x) != 'C') && (toupper(x) != 'E') && (toupper(x) != 'G') && (toupper(x) != 'L') && (toupper(x) != 'S') && (toupper(x) != 'D') && (toupper(x) != 'X') && (toupper(x) != 'T')) {            
+        cout << "Caracter no asignado. Por favor, introduzca un caracter asignado: " << endl;
+        cin >> x;
+        if ((toupper(x) == 'A') || (toupper(x) == 'C') || (toupper(x) == 'E') || (toupper(x) == 'G') || (toupper(x) == 'L') || (toupper(x) == 'S') || (toupper(x) == 'D') || (toupper(x) == 'X') && (toupper(x) != 'T'))
+            break;
+    }
+   
+    switch (toupper(x)) {
+        case 'A':
+            agregarJugador();
+            mainMenu(x);
+            break;
+        case 'C':
+            cargarPartida(nombreFichero);
+            mainMenu(x);
+            break;
+        case 'E':
+            erasePlayer();
+            mainMenu(x);
+            break;
+        case 'G':
+            guardarPartida(nombreFichero);
+            mainMenu(x);
+            break;
+        case 'L':
+            leaderboardPartida();
+            mainMenu(x);
+            break;
+        case 'S':
+            statsJugador();
+            mainMenu(x);
+            break;
+        case 'D':
+            ganadorRonda();
+            mainMenu(x);
+            break;
+        case 'T':
+            transferirFichas();
+            mainMenu(x);
+            break;
+        case 'X':
+            cout << "Hasta Pronto!";
+            break;
+    }
+}
+
+void guardarPartida (string nombreFichero) {
+    ofstream file(nombreFichero);
+
+    if (!file) {
+        cerr << "Error al abrir el fichero" << endl;
+        return;
+    }
+    
+    for (int i = 0; i < jugadores.size(); i++) {
+        file << jugadores[i].nombre << endl;
+        file << jugadores[i].apellido << endl;
+        file << jugadores[i].fichas << endl;
+        file << jugadores[i].rondasJugadas << endl;
+        file << jugadores[i].rondasGanadas << endl;
+        file << jugadores[i].percentGanadas << endl;     
+    }
+    
+    file.close();
+    cout << "Se ha guardado la partida en el fichero correctamente" << endl;
+}
+   
+void cargarPartida (string nombreFichero) {
+    char confirm;
+    string nuevoFichero;
+    
+    cout << "Seguro? Los datos no guardados no se pueden recuperar: Y/N" << endl;
+    cin >> confirm;
+    while ((toupper(confirm) != 'Y') && (toupper(confirm) != 'N')) {
+        cout << "Respuesta no aceptable, por favor, inserte Y o N: ";
+        cin >> confirm;
+    }
+
+    if (toupper(confirm) == 'N')
+        return;
+    
+    if (toupper(confirm) == 'Y') {
+        cout << endl << "Nombre del nuevo fichero: ";
+        cin >> nuevoFichero;
+    
+        ifstream JInput(nuevoFichero);
+   
+        if (JInput.fail())
+            cout << "Error al abrir el fichero" << endl;
+        else {
+            for (int i = 0; i < 10; i++) {
+                jugadores.push_back(defaultPlayers[i]);
+                if (getline(JInput, dato))
+                    jugadores[i].nombre = dato;
+                if (getline(JInput, dato))
+                    jugadores[i].apellido = dato;
+                if (getline(JInput, dato))
+                    jugadores[i].fichas = dato;
+                if (getline(JInput, dato))
+                    jugadores[i].rondasJugadas = dato;
+                if (getline(JInput, dato))
+                    jugadores[i].rondasGanadas = dato;
+                if (getline(JInput, dato))
+                    jugadores[i].percentGanadas = dato;
+            }
+
+            JInput.close();
+        }
+    }
+}
+
+jugador playerFinder(string name) {
+    jugador ERROR;
+    ERROR.nombre = "N/A"; 
+    for (int i = 0; i < jugadores.size(); i++) {
+        for (int j = 0; j < name.size(); j++) {
+            if (tolower(name[j]) != tolower(jugadores[i].nombre[j]))
+                break;
+        }
+        if (name != jugadores[i].nombre)
+            break;
+        return jugadores[i];
+        break;
+    }
+    return ERROR;
+}
+
+void agregarJugador () {
+    if(jugadores.size() >= 10)
+        cout << "No se pueden agregar nuevos jugadores a la partida, elimine a uno" << endl;
+    else {
+        jugador temp; // jugador temporal para almacenar los datos del jugador nuevo en el vector
+        jugadores.push_back(temp);
+       
+        cout << "Nombre del jugador: ";
+        cin >> jugadores[(jugadores.size() - 1)].nombre;
+            
+        cout << "Apellido del jugador: ";
+        cin >> jugadores[(jugadores.size() - 1)].apellido;
+            
+        jugadores[(jugadores.size() - 1)].fichas = "33";
+        jugadores[(jugadores.size() - 1)].rondasJugadas = "0";
+        jugadores[(jugadores.size() - 1)].rondasGanadas = "0";
+        jugadores[(jugadores.size() - 1)].percentGanadas = "0";
+       
+        cout << endl << "Jugador agregado: \"" << jugadores[(jugadores.size() - 1)].nombre << " " << jugadores[(jugadores.size() - 1)].apellido << "\"!";
+    }
+}
+
+void erasePlayer () {
+    jugador eliminatedPlayer;
+    string playerName;
+    bool erased = false;
+
+    cout << "¿Jugador a borrar?" << endl;
+    for (int i = 0; i < jugadores.size(); i++)
+        cout << "->" << jugadores[i].nombre << endl;
+    cin >> playerName;
+    eliminatedPlayer = playerFinder(playerName)
+   
+    if (eliminatedPlayer.nombre == "N/A") {
+        cout << "No se ha encontrado a ni un jugador con ese nombre" << endl;
+        return;
+    }
+    jugadores.erase(eliminatedPlayer);
+    cout << "El jugador " << playerName << " ha sido borrado" << endl;
+    cout << "Jugadores actuales: " << endl;
+        for (int i = 0; i < jugadores.size(); i++)
+            cout << jugadores[i].nombre << " " << jugadores[i].apellido << endl;
+}
+
+void statsJugador () {
+    string name;
+    bool found = false;
+    
+    cout << "Las stats del jugador..." << endl;
+    
+    for (int i = 0; i < jugadores.size(); i++)
+        cout << "->" << jugadores[i].nombre << endl;
+    cin >> name;
+    
+    for (int i = 0; i < jugadores.size(); i++) {
+        if(name == jugadores[i].nombre) {
+            cout << endl << jugadores[i].nombre << " " << jugadores[i].apellido << ":" << endl;
+            cout << "Fichas: " << jugadores[i].fichas << endl;
+            cout << "Juegos jugados: " << jugadores[i].rondasJugadas << endl;
+            cout << "Juegos ganados: " << jugadores[i].rondasGanadas << endl;
+            cout << "Porcentaje de ganados: " << jugadores[i].percentGanadas << endl;
+            found = true;
+            break;
+        } 
+    }
+    
+    if(!found)
+        cout << "No se ha encontrado a ni un jugador con ese nombre" << endl;
+    
+}
+
+void leaderboardPartida () {
+    jugador mejor_jugador = jugadores[0];
+
+    for (int i = 1; i < jugadores.size(); i++) {
+        if (mejor_jugador.fichas < jugadores[i].fichas) 
+            mejor_jugador = jugadores[i];
+    }
+    
+    for (int j = 0; j < jugadores.size(); j++) {
+        cout << "Jugador: " << jugadores[j].nombre << " " << jugadores[j].apellido << endl;
+        cout << "Fichas actuales: " << jugadores[j].fichas << endl;
+        cout << "Rondas Jugadas: " << jugadores[j].rondasJugadas << endl;
+        cout << "Rondas Ganadas: " << jugadores[j].rondasGanadas << endl;
+        cout << "Porcentaje de victorias: " << jugadores[j].percentGanadas << endl;
+    }
+}
+
+void ganadorRonda () {
+    char jugada;
+    string ganador;
+    int cantidadApostada, banca;
+    vector <jugador> ganadores = {};
+    
+    cout << "No disponible en la beta. Atento a las siguientes actualizaciones." << endl;
+    // cout << "Cual fue la cantidad final apostada?: ";
+    // cin >> cantidadApostada;
+    
+    // cout << "Jugadores en esta ronda?" << endl;
+    // for (int i = 0; i < jugadores.size(); i++) {
+    //     cout << jugadores[i].nombre << "?: Y/N" << endl;
+    //     cin >> jugada;
+    //     while ((jugada != 'Y') && (jugada != 'N')) {
+    //         cout << "Respuesta no aceptable, por favor, inserte Y o N: ";
+    //         cin >> jugada;
+    //     }
+    //     if (jugada == 'Y') {
+    //         jugadores[i].rondasJugadas = stoi(jugadores[i].rondasJugadas);
+    //         jugadores[i].rondasJugadas = stoi(jugadores[i].rondasJugadas) + 1;
+    //         jugadores[i].fichas = stoi(jugadores[i].fichas);
+    //         jugadores[i].fichas = stoi(jugadores[i].fichas) - cantidadApostada;
+    //         banca += cantidadApostada;
+    //     }
+    //     else
+    //         continue;
+    // };
+    
+    // cout << "Ganador de la ronda?";
+    // for (int j = 0; j < jugadores.size(); j++) {
+    //     cout << jugadores[j].nombre << "?: Y/N" << endl;
+    //     cin >> jugada;
+    //     while ((toupper(jugada) != 'Y') && (toupper(jugada) != 'N')) {
+    //         cout << "Respuesta no aceptable, por favor, inserte Y o N: ";
+    //         cin >> jugada;
+    //     }
+    //     if (toupper(jugada) == 'Y') {
+    //         jugadores[j].rondasGanadas = stoi(jugadores[j].rondasJugadas);
+    //         jugadores[j].rondasGanadas = stoi(jugadores[j].rondasGanadas) + 1;
+    //         jugador temp; // struct jugador temporal para almacenar los datos del ganador en el vector
+    //         ganadores.push_back(temp);
+    //     }
+    //     else
+    //         continue;
+    // };
+        
+    // for (int k = 0; k < ganadores.size(); k++) {
+    //     ganadores[k].fichas = stoi(ganadores[k].fichas);
+    //     ganadores[k].fichas = stoi(ganadores[k].fichas) + float(banca / ganadores.size());
+    // }
+}
+
+void eliminarJugadoresSinFichas() {
+    vector <jugador> jugadoresActualizados;
+
+    for (int i = 0; i < jugadores.size(); i++) {
+        if (jugadores[i].fichas > 0)
+            jugadoresActualizados.push_back(jugadores[i]);
+    }
+    
+    jugadores = jugadoresActualizados;
+}
+    
+void transferirFichas() {
+    string name;
+    bool found = false;
+
+    cout << "¿Jugador a buscar?" << endl;
+    for (int i = 0; i < jugadores.size(); i++)
+        cout << "->" << jugadores[i].nombre << endl;
+    cin >> name;
+   
+    for (int i = 0; i < jugadores.size(); i++) {
+        for (int j = 0; j < name.size(); j++) {
+            if (tolower(name[j]) != tolower(jugadores[i].nombre[j]))
+                break;
+        }
+        if (name != jugadores[i].nombre)
+            break;
+        jugadores.erase(jugadores.begin() + i);
+        cout << "El jugador " << name << " ha sido borrado" << endl;
+        found = true;
+        break;
+    }
+    
+    if(found) {
+        cout << "Jugadores actuales: " << endl;
+        for (int i = 0; i < jugadores.size(); i++)
+            cout << jugadores[i].nombre << " " << jugadores[i].apellido << endl;
+    }
+    else
+        cout << "No se ha encontrado a ni un jugador con ese nombre" << endl;
+    
+    // int index_source = -1, index_destination = -1, fichas_a_enviar;
+    // string nombre;
+
+    // cout << "Introduce el nombre del jugador que desea enviar fichas: ";
+    // cin >> nombre;
+    
+    // for (int i = 0; i < jugadores.size(); i++) {
+    //     if (jugadores[i].nombre == nombre) {
+    //         index_source = i;
+    //         break;
+    //     }
+    // }
+
+    // if (index_source == -1) {
+    //     cout << "No existe tal jugador." << endl;
+    //     return;
+    // }
+
+    // cout << "Introduce el nombre del jugador que desea recibir fichas: ";
+    // cin >> nombre;
+    
+    // for (int i = 0; i < jugadores.size(); i++) {
+    //     if (jugadores[i].nombre == nombre) {
+    //         index_destination = i;
+    //         break;
+    //     }
+    // }
+
+    // if (index_destination == -1) {
+    //     cout << "No existe tal jugador." << endl;
+    //     return;
+    // }
+
+//     cout << "Introduce la cantidad de fichas a enviar: ";
+//     cin >> fichas_a_enviar;
+
+//     int source_fichas = stoi(jugadores[index_source].fichas);
+//     if (source_fichas < fichas_a_enviar) {
+//         cout << "El jugador no tiene suficientes fichas para realizar la transferencia." << endl;
+//         return;
+//     }
+
+//     int destination_fichas = stoi(jugadores[index_destination].fichas);
+//     destination_fichas += fichas_a_enviar;
+//     source_fichas -= fichas_a_enviar;
+
+//     jugadores[index_source].fichas = to_string(source_fichas);
+//     jugadores[index_destination].fichas = to_string(destination_fichas);
+
+//     cout << "La transferencia de fichas se ha realizado correctamente." << endl;
+
+//     eliminarJugadoresSinFichas();
+ }
