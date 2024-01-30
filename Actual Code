@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -16,64 +15,58 @@ struct jugador {
 };
 
 string dato, nombreFichero;
-jugador a, b, c, d, e, f, g, h, i, j;
-jugador defaultPlayers[] = {a, b, c, d, e, f, g, h, i, j};
-vector <jugador> jugadores;
+jugador defaultPlayers[10];
+vector<jugador> jugadores;
 
-void mainMenu (char);
-void guardarPartida (string);
-void cargarPartida (string);
-void agregarJugador ();
-void erasePlayer ();
-void statsJugador ();
-void leaderboardPartida ();
-void ganadorRonda ();
-void transferirFichas ();
+void mainMenu(char);
+void guardarPartida(string);
+void cargarPartida(string);
+void agregarJugador();
+void erasePlayer();
+void statsJugador();
+void leaderboardPartida();
+void ganadorRonda();
+void transferirFichas();
 
-void playerFinder (string);
+jugador playerFinder(string);
 void eliminarJugadoresSinFichas();
 
 int main() {
-    
     char x;
-    
+
     cout << "Nombre del fichero: ";
     cin >> nombreFichero;
-    
+
     ifstream JInput(nombreFichero);
-    
-    if (JInput.fail())
+
+    if (JInput.fail()) {
         cerr << "Error al abrir el fichero, por favor revisar si el archivo existe en el compilador." << endl;
-        
-    else {
-        for (int i = 0; i < 10; i++) {
-            jugadores.push_back(defaultPlayers[i]);
-            if (getline(JInput, dato))
-                jugadores[i].nombre = dato;
-            if (getline(JInput, dato))
-                jugadores[i].apellido = dato;
-            if (getline(JInput, dato))
-                jugadores[i].fichas = dato;
-            if (getline(JInput, dato))
-                jugadores[i].rondasJugadas = dato;
-            if (getline(JInput, dato))
-                jugadores[i].rondasGanadas = dato;
-            if (getline(JInput, dato))
-                jugadores[i].percentGanadas = dato;
+    } else {
+        jugador tempPlayer;
+        for (int i = 0; i < 10 && getline(JInput, tempPlayer.nombre); ++i) {
+            getline(JInput, tempPlayer.apellido);
+            getline(JInput, tempPlayer.fichas);
+            getline(JInput, tempPlayer.rondasJugadas);
+            getline(JInput, tempPlayer.rondasGanadas);
+            getline(JInput, tempPlayer.percentGanadas);
+
+            if (!tempPlayer.percentGanadas.empty()) {
+                jugadores.push_back(tempPlayer);
+            }
         }
-        
+
         JInput.close();
-        
+
         cout << "Bienvenido a su administrador de partidas de poker!" << endl;
-    
+
         mainMenu(x);
     }
-    
+
     return 0;
 }
 
 void mainMenu (char x) {
-    cout << "\nPulse una de las siguientes teclas para seleccionar lo que desee hacer: " << endl;
+    cout << endl << endl << "Pulse una de las siguientes teclas para seleccionar lo que desee hacer: " << endl;
    
     cout << "A: Agregar Jugador" << endl;
     cout << "C: Cargar Partida" << endl;
@@ -200,19 +193,23 @@ void cargarPartida (string nombreFichero) {
 
 jugador playerFinder(string name) {
     jugador ERROR;
-    ERROR.nombre = "N/A"; 
+    ERROR.nombre = "N/A";
+
     for (int i = 0; i < jugadores.size(); i++) {
+        bool match = true;
         for (int j = 0; j < name.size(); j++) {
-            if (tolower(name[j]) != tolower(jugadores[i].nombre[j]))
-                break;
+            if (tolower(name[j]) != tolower(jugadores[i].nombre[j])) {
+                match = false;
+                break; // Break out of inner loop if a mismatch is found
+            }
         }
-        if (name != jugadores[i].nombre)
-            break;
-        return jugadores[i];
-        break;
+        if (match && name.size() == jugadores[i].nombre.size()) {
+            return jugadores[i]; // Return player if names match and have the same length
+        }
     }
-    return ERROR;
+    return ERROR; // Return ERROR if no player is found
 }
+
 
 void agregarJugador () {
     if(jugadores.size() >= 10)
@@ -245,17 +242,20 @@ void erasePlayer () {
     for (int i = 0; i < jugadores.size(); i++)
         cout << "->" << jugadores[i].nombre << endl;
     cin >> playerName;
-    eliminatedPlayer = playerFinder(playerName)
+    eliminatedPlayer = playerFinder(playerName);
    
     if (eliminatedPlayer.nombre == "N/A") {
-        cout << "No se ha encontrado a ni un jugador con ese nombre" << endl;
+        cout << endl << "No se ha encontrado a ni un jugador con ese nombre" << endl;
         return;
     }
-    jugadores.erase(eliminatedPlayer);
-    cout << "El jugador " << playerName << " ha sido borrado" << endl;
-    cout << "Jugadores actuales: " << endl;
-        for (int i = 0; i < jugadores.size(); i++)
-            cout << jugadores[i].nombre << " " << jugadores[i].apellido << endl;
+    for (int j = 0; j < jugadores.size(); j++) {
+        if (eliminatedPlayer.nombre == jugadores[j].nombre)
+            jugadores.erase(jugadores.begin() + j);
+    }
+    cout << endl << "El jugador " << playerName << " ha sido borrado" << endl;
+    cout << endl << "Jugadores actuales: " << endl;
+    for (int i = 0; i < jugadores.size(); i++)
+        cout << jugadores[i].nombre << " " << jugadores[i].apellido << endl;
 }
 
 void statsJugador () {
@@ -359,7 +359,7 @@ void eliminarJugadoresSinFichas() {
     vector <jugador> jugadoresActualizados;
 
     for (int i = 0; i < jugadores.size(); i++) {
-        if (jugadores[i].fichas > 0)
+        if (stoi(jugadores[i].fichas) > 0)
             jugadoresActualizados.push_back(jugadores[i]);
     }
     
